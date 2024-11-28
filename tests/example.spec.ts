@@ -195,8 +195,7 @@ test('Escenario 5', async ({ page }) => {
   // Navega a la página donde está el slider
   await page.goto('https://www.zegucom.com.mx');
   await page.waitForLoadState('load');
-
-    /**
+  /**
    Parte de inicio de sesion
   */
   // Localiza el usuario  y da click y espera unos segundos 
@@ -224,9 +223,11 @@ test('Escenario 5', async ({ page }) => {
   await page.waitForSelector('button.btn-login');
   await page.click('button.btn-login');
   await page.waitForLoadState('load');
+  //pausa 
+  await page.pause();
   /**
     Termina el incio de sesion 
-  */  
+  */
   
   // Localiza el enlace 
   const lenovoLink = page.locator('a#slick-slide113');
