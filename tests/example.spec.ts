@@ -472,6 +472,129 @@ test('Escenario 4', async ({ page }) => {
 Agregamos algun producto y borraremos todos los productos menos el seleccionado  
 */
 test('Escenario 5', async ({ page }) => {
+  // Navegar a la pagina de zegucom y espera a que carge la pagina 
+  await page.goto('https://www.zegucom.com.mx');
+  await page.waitForLoadState('load');
 
+  /**
+   Parte de inicio de sesion
+  */
+  // Localiza el usuario  y da click y espera unos segundos 
+  const usuaruioLink = page.locator('a#dd_acount_wos');
+  await usuaruioLink.click();
+  await page.waitForLoadState('load');
+  //dar clik en el login
+  await page.locator('a[href="/site/login"]').first().click();
+  await page.waitForLoadState('load');
+  // Seleccionar el campo de usurname
+  const loginUsername = page.locator('#loginform-username');
+  // Verificar que el campo de username esté visible
+  await expect(loginUsername).toBeVisible();
+  // Introducir el correo electrónico
+  await loginUsername.fill('sijal82095@cashbn.com');
+  await page.waitForTimeout(3000);
+  // Seleccionar el campo de password por su selector
+  const loginPassword = page.locator('#loginform-password'); // ID del campo de correo electrónico
+  // Verificar que el campo de password esté visible
+  await expect(loginPassword).toBeVisible();
+  // Introducir la password
+  await loginPassword.fill('123456789');
+  await page.waitForTimeout(3000);
+  //clic en el boton de entrar
+  await page.waitForSelector('button.btn-login');
+  await page.click('button.btn-login');
+  await page.waitForLoadState('load');
+  await page.pause(); 
+  /**
+    Termina el incio de sesion 
+  */  
+
+  // Localizar el campo de búsqueda por el atributo "name"
+  const searchInput = page.locator('input.input-search-autocomplete.search');
+  await page.click('input.input-search-autocomplete.search');
+  // Rellenar el campo de búsqueda con el valor 'laptop'
+  const searchText = 'xbox';
+  await searchInput.fill(searchText);
+  await searchInput.press('Enter');
+
+ // Localizar los contenedores de los productos
+const productContainers = page.locator('div.dfd-card.dfd-card-preset-product.dfd-card-type-productos');
+
+// Obtener la cantidad de contenedores encontrados para saber si los productos existen
+const count = await productContainers.count();
+console.log(`Cantidad de productos encontrados: ${count}`);
+
+// Ciclo para pasar por cada contenedor
+for (let i = 0; i < count; i++) {
+  // Agarra el primer contenido
+  const productLink = productContainers.nth(i).locator('div.dfd-card-title').first();
+
+  // Esperar a que el enlace sea visible y clickeable
+  await productLink.waitFor({ state: 'visible' });
+
+  // Agarra el texto del producto
+  const productDescription = await productLink.getAttribute('title'); // Cambiado a 'title' para una comparación exacta
+  console.log(`Descripción del producto: "${productDescription}"`); // Depura la descripción
+
+  // Verificar si la descripción coincide exactamente con el producto deseado
+  if (productDescription === 'Control Microsoft Xbox Wireless Controller Interfaz Usb, Conectividad Inalámbrico Y Alámbrico, Color Cal') {
+    // Muestra en la consola el producto que cumple con la descripción
+    console.log(`Haciendo clic en el producto: ${productDescription}`);
+    await productLink.click({ force: true }); // Forzar el clic si es necesario
+    break; // Salir después de hacer clic en el producto encontrado
+  } else {
+    console.log(`Producto no coincide: ${productDescription}`);
+  }
+}
+  await page.waitForLoadState('load');
+
+  // Espera a que el botón esté disponible
+  await page.waitForSelector('a#btn-car');
+  // Encuentra el botón y haz clic en él
+  await page.locator('a#btn-car').first().click();
+  await page.waitForLoadState('load');
+
+  //hace click en el carrito de compra
+  await page.waitForSelector('li#cart-count-items');
+  // Encuentra el botón y haz clic en él
+  await page.locator('li#cart-count-items').first().click();
+  await page.waitForLoadState('load');
+  await page.waitForTimeout(8000);
+
+  // Localizar todos los productos en el carrito
+  const cartItems = page.locator('div.card-content p-1');
+  // Obtener la cantidad de productos en el carrito
+  const itemCount = await cartItems.count();
+  console.log(`Cantidad de productos en el carrito: ${itemCount}`);
+
+  // Definir la descripción del producto que queremos mantener
+  const targetDescription = 'Control Microsoft Xbox Wireless Controller Interfaz Usb, Conectividad Inalámbrico Y Alámbrico, Color Cal';
+
+  // Iterar sobre los productos en el carrito
+  for (let i = 0; i < itemCount; i++) {
+    // Localizar la descripción del producto actual
+    const currentItem = cartItems.nth(i);
+    const productDescription = await currentItem.getAttribute('data-descripcion');
+    console.log(`Producto encontrado: ${productDescription}`);
+
+    // Verificar si la descripción no coincide con el producto objetivo
+    if (productDescription !== targetDescription) {
+      console.log(`Eliminando producto: ${productDescription}`);
+
+      // Localizar y hacer clic en el botón de eliminar
+      const deleteButton = currentItem.locator('a.remove-cart-item');
+      await deleteButton.click();
+      
+      const deleteProduct = currentItem.locator('button.swal2-confirm.swal2-styled');
+      await deleteProduct.click();
+      
+      // Esperar a que se elimine el producto (puede necesitar ajuste según comportamiento)
+      await page.waitForTimeout(2000); // Ajusta el tiempo según sea necesario
+    } else {
+      console.log(`Manteniendo el producto: ${productDescription}`);
+    }
+  }
+
+  console.log("Productos no deseados eliminados del carrito.");
 
 });
