@@ -114,7 +114,7 @@ test('Escenario 1', async ({ page }) => {
   //boton de siguiente para pagar 
   await page.waitForSelector('a.rounded.next-step-web.waves-effect.waves-light.btn.w-100:not([disabled])');
   await page.click('a.rounded.next-step-web.waves-effect.waves-light.btn.w-100');
-  await page.waitForTimeout(8000);
+  await page.waitForTimeout(3000);
 
 });
 
@@ -153,9 +153,78 @@ test('Escenario 2', async ({ page }) => {
   await page.waitForSelector('button.btn-login');
   await page.click('button.btn-login');
   await page.waitForLoadState('load');
+  await page.pause();
   /**
     Termina el incio de sesion 
   */  
+
+  await page.click('i.material-icons.right.white-text');
+
+
+  // Paso 1: Localizar el menu de Videojuegos y Gadgets
+  const videoJuegosLink = page.locator('a.pt-px-10.pb-px-10.white-text >> text="Videojuegos y Gadgets"');
+  await videoJuegosLink.hover();
+  console.log("Se pasó el puntero por encima de 'Categorías'.");
+
+  // Paso 2: Localizar el submenu de consolas
+  const consolaLink = page.locator('a.pt-px-10.pb-px-10.grey-text.text-darken-3 >> text="consolas"');
+  await consolaLink.hover();
+  console.log("Se pasó el puntero por encima de 'Consola'.");
+
+  // Paso 3: Localizar el menu de Videojuegos y Gadgets
+  const consolaLinkf = page.locator('a[href="/Subcategorias/consolas/CNLS/3"]').first();
+  await consolaLinkf.hover();
+  console.log("Se pasó el puntero por encima de 'Consolas'.");
+  await consolaLinkf.click();
+  await page.waitForLoadState('load');
+
+  //localiza el primer producto de consolas
+  page.locator('div.col.s12.hoverable.pt-2.pb-2.mb-1.rounded white');
+  //localiza el boton para agregar en favoritos
+  const favoritoslink = page.locator('a.btn-favorites.btn-float.red-text');
+  await favoritoslink.click();
+ 
+
+  //localiza el boton de cuenta 
+  await page.waitForSelector('a.dropdown-trigger');
+  await page.click('a.dropdown-trigger');
+  await page.waitForLoadState('load');
+
+  //localiza el boton de favoritos
+  await page.waitForSelector('a[href="/Subcategorias/consolas/CNLS/3"]');
+  await page.click('a[href="/clientes/control-panel-favorites"]');
+  await page.waitForLoadState('load');
+
+  //localiza el producto de favoritos
+  // Seleccionar el enlace del producto basado en la clase y el atributo único `href`
+  const productoLink = page.locator('a.img-favorite-product[href="/producto/dispositivos-de-juegos/consolas/consola-portatil-msi-claw-a1m-052us-core-ultra-5-135h-512gb-16gb-lpdd/Q0xBV0ExMDUy"]');
+  // Hacer clic en el producto
+  await productoLink.click();
+
+  // Verificar que se haya cargado la página del producto
+  await page.waitForLoadState('load');
+
+  // Espera a que el botón esté disponible
+  await page.waitForSelector('a#btn-car');
+  // Encuentra el botón y haz clic en él
+  await page.locator('a#btn-car').first().click();
+
+  //hace click en el carrito de compra
+  await page.waitForSelector('li#cart-count-items');
+  // Encuentra el botón y haz clic en él
+  await page.locator('li#cart-count-items').first().click();
+  //await page.waitForTimeout(10000);
+
+  // Esperar a que el botón "Siguiente" esté visible en la página
+  await page.waitForSelector('a.beginCheckout');
+  // Hacer clic en el botón "Siguiente"
+  await page.locator('a.beginCheckout').click();
+
+  //boton de siguiente para pagar 
+  await page.waitForSelector('a.rounded.next-step-web.waves-effect.waves-light.btn.w-100:not([disabled])');
+  await page.click('a.rounded.next-step-web.waves-effect.waves-light.btn.w-100');
+  await page.waitForTimeout(3000);
+ 
 });
 
 /**
@@ -165,6 +234,43 @@ test('Escenario 3: Armar PC en Zegucom', async ({ page }) => {
   // Navega a la página principal
   await page.goto('https://www.zegucom.com.mx');
   await page.waitForLoadState('load');
+
+  // Navegar a la pagina de zegucom y espera a que carge la pagina 
+  await page.goto('https://www.zegucom.com.mx');
+  await page.waitForLoadState('load');
+    /**
+   Parte de inicio de sesion
+  */
+  // Localiza el usuario  y da click y espera unos segundos 
+  const usuaruioLink = page.locator('a#dd_acount_wos');
+  await usuaruioLink.click();
+  await page.waitForLoadState('load');
+  //dar clik en el login
+  await page.locator('a[href="/site/login"]').first().click();
+  await page.waitForLoadState('load');
+  // Seleccionar el campo de usurname
+  const loginUsername = page.locator('#loginform-username');
+  // Verificar que el campo de username esté visible
+  await expect(loginUsername).toBeVisible();
+  // Introducir el correo electrónico
+  await loginUsername.fill('sijal82095@cashbn.com');
+  await page.waitForTimeout(3000);
+  // Seleccionar el campo de password por su selector
+  const loginPassword = page.locator('#loginform-password'); // ID del campo de correo electrónico
+  // Verificar que el campo de password esté visible
+  await expect(loginPassword).toBeVisible();
+  // Introducir la password
+  await loginPassword.fill('123456789');
+  await page.waitForTimeout(3000);
+  //clic en el boton de entrar
+  await page.waitForSelector('button.btn-login');
+  await page.click('button.btn-login');
+  await page.waitForLoadState('load');
+  await page.pause();
+  /**
+    Termina el incio de sesion 
+  */  
+ 
   // Dar clic en "Armar la PC"
   await page.locator('a[href="/armar-pc-gamer"]').first().click();
   await page.waitForLoadState('load');
