@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- En este escenario  iniciaremos sesion en la pagina de zegucom
+ En este escenario  iniciaremos sesion en la pagina de zegucom y buscamos en el navegador laptops que tengan la especificion que tenga un Intel Core I7 y lo agrega el carrito
  */
 test('Escenario 1', async ({ page }) => {
   // Navegar a la pagina de zegucom y espera a que carge la pagina 
@@ -119,7 +119,7 @@ test('Escenario 1', async ({ page }) => {
 });
 
 /**
-  Buscamos en el navegador laptops que tengan la especificion que tenga un Intel Core I7
+  En este escenario  iniciaremos sesion en la pagina de zegucom y buscamos en la parte de categorias sus consolas 
  */
 test('Escenario 2', async ({ page }) => {
   // Navegar a la pagina de zegucom y espera a que carge la pagina 
@@ -227,6 +227,7 @@ test('Escenario 2', async ({ page }) => {
  
 });
 
+
 /**
 En este escenario armaras tu pc en Zegucom
 */
@@ -234,11 +235,7 @@ test('Escenario 3: Armar PC en Zegucom', async ({ page }) => {
   // Navega a la página principal
   await page.goto('https://www.zegucom.com.mx');
   await page.waitForLoadState('load');
-
-  // Navegar a la pagina de zegucom y espera a que carge la pagina 
-  await page.goto('https://www.zegucom.com.mx');
-  await page.waitForLoadState('load');
-    /**
+  /**
    Parte de inicio de sesion
   */
   // Localiza el usuario  y da click y espera unos segundos 
@@ -270,10 +267,15 @@ test('Escenario 3: Armar PC en Zegucom', async ({ page }) => {
   /**
     Termina el incio de sesion 
   */  
- 
+
   // Dar clic en "Armar la PC"
-  await page.locator('a[href="/armar-pc-gamer"]').first().click();
+  await page.locator('a[href="/history/assemblies"]').first().click();
   await page.waitForLoadState('load');
+
+  //da click a ensamblar pc
+  await page.locator('a.btn.indigo.darken-4').click();
+  await page.waitForLoadState('load');
+
   // Espera a que los elementos del slider estén cargados
   await page.waitForSelector('.slick-track');
   // Obtén todos los botones "Seleccionar" dentro del slider
@@ -289,15 +291,76 @@ test('Escenario 3: Armar PC en Zegucom', async ({ page }) => {
     return; 
     // Salir del test si no hay botones disponibles
   }
-  await page.waitForTimeout(8000);
+
+  await page.waitForLoadState('load');
+ // **Seleccionar productos alternativos para componentes agotados**
+let agotados = true;
+while (agotados) {
+  // Buscar todos los productos agotados por su descripción
+  const productosAgotados = page.locator('h6:has-text("Este producto se encuentra agotado en la sucursal")');
+  const count = await productosAgotados.count();
+
+  if (count === 0) {
+    agotados = false; // No hay más productos agotados, salir del bucle
+    break;
+  }
+
+  // Siempre trabajar con el primer producto agotado disponible
+  for (let i = 0; i < count; i++) {
+    const productoAgotado = productosAgotados.nth(0); // Seleccionar siempre el primero disponible
+    const cambiarProductoButton = productoAgotado.locator('..').locator('button[data-estado="change-product"]');
+
+    // Verificar que el botón "Cambiar producto" esté visible y hacer clic
+    await expect(cambiarProductoButton).toBeVisible();
+    await cambiarProductoButton.click();
+    await page.waitForLoadState('load');
+
+    // Seleccionar el primer producto alternativo
+    const primerProductoAlternativo = page.locator('a.add-to-assembly').first();
+    await expect(primerProductoAlternativo).toBeVisible();
+    await primerProductoAlternativo.click();
+
+    // Esperar a que el overlay se cierre
+    await page.waitForTimeout(3000); // Ajustar según comportamiento
+  }
+
+  // Recalcular la lista de productos agotados después de procesar
+  await page.waitForLoadState('load');
+}
+  console.log("Todos los productos agotados han sido reemplazados.");
+
+  //da click an armar tu pc
+  await page.locator('span.lever').click();
+  await page.waitForLoadState('load');
+
+  //enviar el esamble al carrito
+  await page.locator('a.z-depth-0.rounded.waves-effect.waves-light.zegublue.btn.w-100').click();
+  await page.waitForLoadState('load');
+
+  
+  // Esperar a que el botón de OK
+  await page.waitForSelector('button.swal2-confirm.swal2-styled');
+  // Hacer clic en el botón "Ok"
+  await page.locator('button.swal2-confirm.swal2-styled').click();
+
+  // Esperar a que el botón "Siguiente" esté visible en la página
+  await page.waitForSelector('a.beginCheckout');
+  // Hacer clic en el botón "Siguiente"
+  await page.locator('a.beginCheckout').click();
+
+  //boton de siguiente para pagar 
+  await page.waitForSelector('a.rounded.next-step-web.waves-effect.waves-light.btn.w-100:not([disabled])');
+  await page.click('a.rounded.next-step-web.waves-effect.waves-light.btn.w-100');
+  await page.waitForTimeout(3000);
+ 
 });
 
     
 
 /*
- Este escenario ira hacia los mejores marcas que tiene zegucom y busca un producto  y termina al 
+ Este escenario ira hacia los mejores marcas que tiene zegucom y busca un producto  y lo agregamos al carrito
  */
-test('Escenario 5', async ({ page }) => {
+test('Escenario 4', async ({ page }) => {
   // Navega a la página donde está el slider
   await page.goto('https://www.zegucom.com.mx');
   await page.waitForLoadState('load');
@@ -401,4 +464,14 @@ test('Escenario 5', async ({ page }) => {
   await page.waitForSelector('a.rounded');
   await page.click('a.rounded');
   await page.waitForTimeout(8000);
+});
+
+
+
+/**
+Agregamos algun producto y borraremos todos los productos menos el seleccionado  
+*/
+test('Escenario 5', async ({ page }) => {
+
+
 });
