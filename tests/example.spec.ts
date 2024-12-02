@@ -271,42 +271,37 @@ test('Escenario 3: Armar PC en Zegucom', async ({ page }) => {
     return; 
     // Salir del test si no hay botones disponibles
   }
-
   await page.waitForLoadState('load');
- // **Seleccionar productos alternativos para componentes agotados**
-let agotados = true;
-while (agotados) {
-  // Buscar todos los productos agotados por su descripción
-  const productosAgotados = page.locator('h6:has-text("Este producto se encuentra agotado en la sucursal")');
-  const count = await productosAgotados.count();
 
-  if (count === 0) {
-    agotados = false; // No hay más productos agotados, salir del bucle
-    break;
-  }
-
-  // Siempre trabajar con el primer producto agotado disponible
-  for (let i = 0; i < count; i++) {
-    const productoAgotado = productosAgotados.nth(0); // Seleccionar siempre el primero disponible
-    const cambiarProductoButton = productoAgotado.locator('..').locator('button[data-estado="change-product"]');
-
-    // Verificar que el botón "Cambiar producto" esté visible y hacer clic
-    await expect(cambiarProductoButton).toBeVisible();
-    await cambiarProductoButton.click();
+  // **Seleccionar productos alternativos para componentes agotados**
+  let agotados = true;
+  while (agotados) {
+    // Buscar todos los productos agotados por su descripción
+    const productosAgotados = page.locator('h6:has-text("Este producto se encuentra agotado en la sucursal")');
+    const count = await productosAgotados.count();
+    if (count === 0) {
+      agotados = false; // No hay más productos agotados, salir del bucle
+      break;
+    }
+    // Siempre trabajar con el primer producto agotado disponible
+    for (let i = 0; i < count; i++) {
+      const productoAgotado = productosAgotados.nth(0); // Seleccionar siempre el primero disponible
+      const cambiarProductoButton = productoAgotado.locator('..').locator('button[data-estado="change-product"]');
+      // Verificar que el botón "Cambiar producto" esté visible y hacer clic
+      await expect(cambiarProductoButton).toBeVisible();
+      await cambiarProductoButton.click();
+      await page.waitForLoadState('load');
+      // Seleccionar el primer producto alternativo
+      const primerProductoAlternativo = page.locator('a.add-to-assembly').first();
+      await expect(primerProductoAlternativo).toBeVisible();
+      await primerProductoAlternativo.click();
+      // Esperar a que el overlay se cierre
+      await page.waitForTimeout(3000); // Ajustar según comportamiento
+    }
+    // Recalcular la lista de productos agotados después de procesar
     await page.waitForLoadState('load');
-
-    // Seleccionar el primer producto alternativo
-    const primerProductoAlternativo = page.locator('a.add-to-assembly').first();
-    await expect(primerProductoAlternativo).toBeVisible();
-    await primerProductoAlternativo.click();
-
-    // Esperar a que el overlay se cierre
-    await page.waitForTimeout(3000); // Ajustar según comportamiento
   }
 
-  // Recalcular la lista de productos agotados después de procesar
-  await page.waitForLoadState('load');
-}
   console.log("Todos los productos agotados han sido reemplazados.");
 
   //da click an armar tu pc
@@ -317,7 +312,6 @@ while (agotados) {
   await page.locator('a.z-depth-0.rounded.waves-effect.waves-light.zegublue.btn.w-100').click();
   await page.waitForLoadState('load');
 
-  
   // Esperar a que el botón de OK
   await page.waitForSelector('button.swal2-confirm.swal2-styled');
   // Hacer clic en el botón "Ok"
@@ -378,20 +372,17 @@ test('Escenario 4', async ({ page }) => {
     Termina el incio de sesion 
   */
   
-  // Localiza el enlace 
+  // Localiza en las mejores marcas el enlace y la selecciona
   const lenovoLink = page.locator('a#slick-slide113');
   await lenovoLink.click();
 
   // Selecciona un div con la clase "transparent"
   const transparentDivs = await page.locator('div.transparent');
-
   // Obtiene todos los enlaces de productos dentro de esos divs
   const productLinks = await transparentDivs.locator('a.selectItem');
-
   // Escoge un enlace aleatorio
   const randomIndex = Math.floor(Math.random() * await productLinks.count());
   const randomProductLink = productLinks.nth(randomIndex);
-
   // Haz clic en el enlace del producto seleccionado
   await randomProductLink.click();
   await page.waitForLoadState('load');
@@ -420,8 +411,6 @@ test('Escenario 4', async ({ page }) => {
   await page.click('a.rounded.next-step-web.waves-effect.waves-light.btn.w-100');
   await page.waitForTimeout(3000);
 });
-
-
 
 /**
 Agregamos un  producto de la marca de logitech y borraremos todos los productos menos el seleccionado  anteriormente y compramos el producto 
@@ -467,106 +456,94 @@ test('Escenario 5', async ({ page }) => {
   // Localizar el campo de búsqueda por el atributo "name"
   const searchInput = page.locator('input.input-search-autocomplete.search');
   await page.click('input.input-search-autocomplete.search');
-  // Rellenar el campo de búsqueda con el valor 'laptop'
+  // Rellenar el campo de búsqueda con el valor 'logitech'
   const searchText = 'logitech';
   await searchInput.fill(searchText);
   await searchInput.press('Enter');
 
 
-// Localizar los contenedores de los productos
-const productContainers = page.locator('div.dfd-card.dfd-card-preset-product.dfd-card-type-productos');
+  // Localizar los contenedores de los productos
+  const productContainers = page.locator('div.dfd-card.dfd-card-preset-product.dfd-card-type-productos');
+  // Obtener la cantidad de contenedores encontrados para saber si los productos existen
+  const count = await productContainers.count();
+  console.log(`Cantidad de productos encontrados: ${count}`);
+  // Ciclo para pasar por cada contenedor
+  for (let i = 0; i < count; i++) {
+    // Agarra el primer contenido
+    const productLink = productContainers.nth(i).locator('div.dfd-card-title').first();
 
-// Obtener la cantidad de contenedores encontrados para saber si los productos existen
-const count = await productContainers.count();
-console.log(`Cantidad de productos encontrados: ${count}`);
+    // Esperar a que el enlace sea visible y clickeable
+    await productLink.waitFor({ state: 'visible' });
 
-// Ciclo para pasar por cada contenedor
-for (let i = 0; i < count; i++) {
-  // Agarra el primer contenido
-  const productLink = productContainers.nth(i).locator('div.dfd-card-title').first();
+    // Agarra el texto del producto
+    const productDescription = await productLink.getAttribute('title'); // Cambiado a 'title' para una comparación exacta
+    console.log(`Descripción del producto: "${productDescription}"`); // Depura la descripción
 
-  // Esperar a que el enlace sea visible y clickeable
-  await productLink.waitFor({ state: 'visible' });
-
-  // Agarra el texto del producto
-  const productDescription = await productLink.getAttribute('title'); // Cambiado a 'title' para una comparación exacta
-  console.log(`Descripción del producto: "${productDescription}"`); // Depura la descripción
-
-  // Verificar si la descripción coincide exactamente con el producto deseado
-  if (productDescription === 'Logitech Audifonos Gamer G733 7.1, Ps4/pc, Inalambrico, Usb, Azul') {
-    // Muestra en la consola el producto que cumple con la descripción
-    console.log(`Haciendo clic en el producto: ${productDescription}`);
-    await productLink.click({ force: true }); // Forzar el clic si es necesario
-    break; // Salir después de hacer clic en el producto encontrado
-  } else {
-    console.log(`Producto no coincide: ${productDescription}`);
+    // Verificar si la descripción coincide exactamente con el producto deseado
+    if (productDescription === 'Logitech Audifonos Gamer G733 7.1, Ps4/pc, Inalambrico, Usb, Azul') {
+      // Muestra en la consola el producto que cumple con la descripción
+      console.log(`Haciendo clic en el producto: ${productDescription}`);
+      await productLink.click({ force: true }); // Forzar el clic si es necesario
+      break; // Salir después de hacer clic en el producto encontrado
+    } else {
+      console.log(`Producto no coincide: ${productDescription}`);
+    }
   }
-}
-  await page.waitForLoadState('load');
+    await page.waitForLoadState('load');
 
-  // Espera a que el botón esté disponible
-  await page.waitForSelector('a#btn-car');
-  // Encuentra el botón y haz clic en él
-  await page.locator('a#btn-car').first().click();
-  await page.waitForLoadState('load');
+    // Espera a que el botón esté disponible
+    await page.waitForSelector('a#btn-car');
+    // Encuentra el botón y haz clic en él
+    await page.locator('a#btn-car').first().click();
+    await page.waitForLoadState('load');
 
-  //hace click en el carrito de compra
-  await page.waitForSelector('li#cart-count-items');
-  // Encuentra el botón y haz clic en él
-  await page.locator('li#cart-count-items').first().click();
-  await page.waitForLoadState('load');
-  await page.waitForTimeout(8000);
+    //hace click en el carrito de compra
+    await page.waitForSelector('li#cart-count-items');
+    // Encuentra el botón y haz clic en él
+    await page.locator('li#cart-count-items').first().click();
+    await page.waitForLoadState('load');
+    await page.waitForTimeout(8000);
 
-// Descripción del producto que queremos conservar
-const productToKeep = "Logitech Audifonos Gamer G733 7.1, Ps4/pc, Inalambrico, Usb, Azul";
+  // Descripción del producto que queremos conservar
+  const productToKeep = "Logitech Audifonos Gamer G733 7.1, Ps4/pc, Inalambrico, Usb, Azul";
+  // Localizar las tarjetas de las sucursales
+  const sucursalCards = page.locator('.card-sucursal');
+  // Obtener la cantidad de sucursales
+  const sucursalCount = await sucursalCards.count();
+  console.log(`Cantidad de sucursales encontradas: ${sucursalCount}`);
+  // Iterar por cada sucursal
+  for (let i = 0; i < sucursalCount; i++) {
+      const sucursal = sucursalCards.nth(i);
+      // Localizar los productos dentro de la sucursal
+      const products = sucursal.locator('.collection-item');
+      let productCount = await products.count();
+      console.log(`Sucursal ${i + 1}: ${productCount} productos encontrados.`);
 
-// Localizar las tarjetas de las sucursales
-const sucursalCards = page.locator('.card-sucursal');
-
-// Obtener la cantidad de sucursales
-const sucursalCount = await sucursalCards.count();
-console.log(`Cantidad de sucursales encontradas: ${sucursalCount}`);
-
-// Iterar por cada sucursal
-for (let i = 0; i < sucursalCount; i++) {
-    const sucursal = sucursalCards.nth(i);
-
-    // Localizar los productos dentro de la sucursal
-    const products = sucursal.locator('.collection-item');
-    let productCount = await products.count();
-    console.log(`Sucursal ${i + 1}: ${productCount} productos encontrados.`);
-
-    // Iterar de forma inversa para evitar que los índices cambien después de eliminar un producto
-    for (let j = productCount - 1; j >= 0; j--) {
-        const product = products.nth(j);
-
-        // Obtener la descripción del producto
-        const productDescription = await product.getAttribute('data-descripcion');
-        console.log(`Producto encontrado: "${productDescription}"`);
-
-        // Verificar si la descripción coincide con el producto que queremos conservar
-        if (productDescription !== productToKeep) {
-            console.log(`Eliminando producto: "${productDescription}"`);
-
-            // Localizar y hacer clic en el botón de eliminar
-            const deleteButton = product.locator('.remove-cart-item');
-            await deleteButton.click();
-
-            // Esperar a que aparezca el modal de confirmación
-            await page.waitForSelector('.swal2-popup', { state: 'visible' });
-            console.log("Confirmación de SweetAlert2 detectada.");
-
-            // Hacer clic en el botón "Aceptar" del modal
-            const confirmButton = page.locator('.swal2-confirm');
-            await confirmButton.click();
-
-            // Opcional: Esperar un tiempo para que el producto sea eliminado del DOM
-            await page.waitForTimeout(2000); 
-        } else {
-            console.log(`Conservando producto: "${productDescription}"`);
-        }
+      // Iterar de forma inversa para evitar que los índices cambien después de eliminar un producto
+      for (let j = productCount - 1; j >= 0; j--) {
+          const product = products.nth(j);
+          // Obtener la descripción del producto
+          const productDescription = await product.getAttribute('data-descripcion');
+          console.log(`Producto encontrado: "${productDescription}"`);
+          // Verificar si la descripción coincide con el producto que queremos conservar
+          if (productDescription !== productToKeep) {
+              console.log(`Eliminando producto: "${productDescription}"`);
+              // Localizar y hacer clic en el botón de eliminar
+              const deleteButton = product.locator('.remove-cart-item');
+              await deleteButton.click();
+              // Esperar a que aparezca el modal de confirmación
+              await page.waitForSelector('.swal2-popup', { state: 'visible' });
+              console.log("Confirmación de SweetAlert2 detectada.");
+              // Hacer clic en el botón "Aceptar" del modal
+              const confirmButton = page.locator('.swal2-confirm');
+              await confirmButton.click();
+              // Opcional: Esperar un tiempo para que el producto sea eliminado del DOM
+              await page.waitForTimeout(2000); 
+          } else {
+              console.log(`Conservando producto: "${productDescription}"`);
+          }
+    }
   }
-}
 
   // Esperar a que el botón "Siguiente" esté visible en la página
   await page.waitForSelector('a.beginCheckout');
